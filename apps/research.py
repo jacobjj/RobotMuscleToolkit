@@ -213,32 +213,7 @@ def update_graph(xaxis_column_name, yaxis_column_name):
     ticktext['Power Density (W/g)'] = [1e-7, 0.0001, 0.1, 100, 1e5]
 
     xtext = list(ticktext.get(xaxis_column_name))
-    ytext = list(ticktext.get(yaxis_column_name))
-
-    # layout = go.Layout(
-    # xaxis=dict(
-    #     title=dropdown_label(xaxis_column_name),
-    #     tickvals=xticks,
-    #     ticktext=xtickstext,
-    # ),
-    # yaxis=dict(
-    #     title=dropdown_label(yaxis_column_name),
-    #     tickvals=yticks,
-    #     ticktext=ytickstext,
-    # ))
-    # fig = go.Figure(layout=layout)
-    # fig.update_xaxes(type="log")
-    # fig.update_yaxes(type="log")
-
-    # app.logger.info(df[xaxis_column_name])
-
-    # fig.add_trace(go.Scatter(x=df[xaxis_column_name], y=df[yaxis_column_name], mode='markers', 
-    #     marker={
-    #         'size': 15,
-    #         'opacity': 0.5,
-    #         'line': {'width': 0.7, 'color': 'white'}
-    #     },
-    # ))    
+    ytext = list(ticktext.get(yaxis_column_name)) 
     
     traces = []
     for i in df["Actuator Type"].unique():
@@ -300,7 +275,7 @@ def graph_contour(plot_button, clear_button, x_dropdown, y_dropdown, x_input, y_
 
     ticktext = {}
     ticktext['Bandwidth'] = [0.01, 1, 100, 1e4, 1e6]
-    ticktext['Strain'] = [0.001, 0.1, 10, 1000, 1e5]
+    ticktext['Strain'] = [0.0001, 0.01, 1, 100, 1e4]
     ticktext['Stress'] = [0.1, 1, 10, 100, 1000, 10000]
     ticktext['Efficiency'] = [0.01, 0.1, 1, 10, 100, 1000] 
     ticktext['Power Density'] = [1e-7, 0.0001, 0.1, 100, 1e5]
@@ -312,6 +287,7 @@ def graph_contour(plot_button, clear_button, x_dropdown, y_dropdown, x_input, y_
     scaler = pkl.load(open(path, 'rb'))
     xticks = scaler.transform(np.stack([np.log(xlabels), np.ones_like(xlabels)], axis=1))[:, 0]
     yticks = scaler.transform(np.stack([np.ones_like(ylabels), np.log(ylabels)], axis=1))[:, 1]
+    app.logger.info(xticks)
     xmin, xmax = xticks[[0, -1]]
     ymin, ymax = yticks[[0, -1]]
 
@@ -330,8 +306,6 @@ def graph_contour(plot_button, clear_button, x_dropdown, y_dropdown, x_input, y_
         zeroline=False
     ))
     fig = go.Figure(layout=layout)
-    # fig.update_xaxes(type="log")
-    # fig.update_yaxes(type="log")
     fig.update_xaxes(range=[xmin, xmax])
     fig.update_yaxes(range=[ymin, ymax])
 
@@ -357,52 +331,49 @@ def graph_contour(plot_button, clear_button, x_dropdown, y_dropdown, x_input, y_
     )
 
 
-    # changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    # if 'plot-vals' in changed_id:
-    #     input_transformed = scaler.transform(np.asarray([[np.log(x_input), np.log(y_input)]]))[0]
-    #     app.logger.info(input_transformed)
-    #     app.logger.info(input_transformed[0])
-    #     app.logger.info(input_transformed[1])
-    #     fig.add_trace(go.Scatter(x=[input_transformed[0]], y=[input_transformed[1]], mode='markers', 
-    #     marker=dict(
-    #         size=[16], color='white', opacity=1,
-    #         line=dict(
-    #             color='Red',
-    #             width=4
-    #         )
-    #         )
-    #     ))
-    # elif 'clear-plot' in changed_id:
-    #     layout = go.Layout(
-    #     title="Actuator Properties",
-    #     xaxis=dict(
-    #         title=dropdown_label(x_dropdown)
-    #     ),
-    #     yaxis=dict(
-    #         title=dropdown_label(y_dropdown)
-    #     ) ) 
-    #     fig = go.Figure(layout=layout)
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'plot-vals' in changed_id:
+        input_transformed = scaler.transform(np.asarray([[np.log(x_input), np.log(y_input)]]))[0]
+        fig.add_trace(go.Scatter(x=[input_transformed[0]], y=[input_transformed[1]], mode='markers', 
+        marker=dict(
+            size=[16], color='white', opacity=1,
+            line=dict(
+                color='Red',
+                width=4
+            )
+            )
+        ))
+    elif 'clear-plot' in changed_id:
+        layout = go.Layout(
+        title="Actuator Properties",
+        xaxis=dict(
+            title=dropdown_label(x_dropdown)
+        ),
+        yaxis=dict(
+            title=dropdown_label(y_dropdown)
+        ) ) 
+        fig = go.Figure(layout=layout)
 
-    #     fig.update_xaxes(range=[xmin, xmax])
-    #     fig.update_yaxes(range=[ymin, ymax])
+        fig.update_xaxes(range=[xmin, xmax])
+        fig.update_yaxes(range=[ymin, ymax])
 
-    #     if (x_dropdown == y_dropdown):
-    #         return 'Please select two different parameters for plotting'
-    #     else:
-    #         # Add images
-    #         fig.add_layout_image(
-    #             dict(
-    #                 source=app.get_asset_url('/contours/{}_{}.png'.format(x_dropdown, y_dropdown)),
-    #                 xref="x",
-    #                 yref="y",
-    #                 x=xmin,
-    #                 y=ymax,
-    #                 sizex=xmax - xmin,
-    #                 sizey=ymax - ymin,
-    #                 sizing="stretch",
-    #                 opacity=0.9,
-    #                 layer="below")
-    #         )
+        if (x_dropdown == y_dropdown):
+            return 'Please select two different parameters for plotting'
+        else:
+            # Add images
+            fig.add_layout_image(
+                dict(
+                    source=app.get_asset_url('/contours/{}_{}.png'.format(x_dropdown, y_dropdown)),
+                    xref="x",
+                    yref="y",
+                    x=xmin,
+                    y=ymax,
+                    sizex=xmax - xmin,
+                    sizey=ymax - ymin,
+                    sizing="stretch",
+                    opacity=0.9,
+                    layer="below")
+            )
 
 
     # Set templates
