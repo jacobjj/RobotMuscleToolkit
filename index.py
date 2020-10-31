@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 
 from app import app
 # import all pages in the app
-from apps import home, about, research, components, showcase, forum, contribute, resources, outreach
+from apps import home, about, research, components, showcase, forum, contribute, resources, outreach, references
 
 # building the navigation bar
 # https://github.com/facultyai/dash-bootstrap-components/blob/master/examples/advanced-component-usage/Navbars.py
@@ -20,6 +20,7 @@ dropdown = dbc.DropdownMenu(
         dbc.DropdownMenuItem("Contribute", href="/contribute"),
         dbc.DropdownMenuItem("Resources for Educators", href="/resources"),
         dbc.DropdownMenuItem("Outreach", href="/outreach"),
+        dbc.DropdownMenuItem("References", href="/references"),
     ],
     nav = True,
     in_navbar = True,
@@ -98,6 +99,8 @@ def display_page(pathname):
         return resources.layout
     elif pathname == '/outreach':
         return outreach.layout
+    elif pathname == '/references':
+        return references.layout
     else:
         return home.layout
 
